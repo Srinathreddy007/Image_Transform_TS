@@ -6,9 +6,10 @@ export interface ImageMeta {
   created_at: string
 }
 
-/** Matches backend ImageListResponse schema */
+/** Matches backend ImageListResponse schema (with pagination) */
 export interface ImageListResponse {
   count: number
+  total: number
   images: ImageMeta[]
 }
 

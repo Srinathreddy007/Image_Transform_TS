@@ -33,6 +33,7 @@ interface RegistryRecord {
   url: string;
   delete_url: string;
   created_at: string;
+  original_filename: string; // Store original filename for better UX
 }
 
 type Registry = Record<string, RegistryRecord>;
@@ -60,6 +61,7 @@ export interface CloudUploadResult {
   url: string;
   delete_url: string;
   created_at: string;
+  original_filename: string;
 }
 
 /**
@@ -67,12 +69,14 @@ export interface CloudUploadResult {
  *
  * @param imageBuffer - Raw PNG bytes to upload.
  * @param publicId    - Unique identifier for this image.
- * @returns Object with: public_id, url, delete_url, created_at.
+ * @param originalFilename - Original filename from user upload (for storage).
+ * @returns Object with: public_id, url, delete_url, created_at, original_filename.
  * @throws Error if the upload fails.
  */
 export async function uploadImage(
   imageBuffer: Buffer,
-  publicId: string
+  publicId: string,
+  originalFilename?: string
 ): Promise<CloudUploadResult> {
   const b64Image = imageBuffer.toString("base64");
 
@@ -109,6 +113,7 @@ export async function uploadImage(
     url: data.display_url ?? data.url ?? "",
     delete_url: data.delete_url ?? "",
     created_at: new Date().toISOString(),
+    original_filename: originalFilename ?? "image.png",
   };
 
   // Persist to local registry so we can list / delete later.
@@ -122,18 +127,20 @@ export async function uploadImage(
 /**
  * List all images from the local registry.
  *
- * @returns Array of objects, each with: public_id, url, created_at.
+ * @returns Array of objects, each with: public_id, url, created_at, original_filename.
  */
 export function listImages(): Array<{
   public_id: string;
   url: string;
   created_at: string;
+  original_filename: string;
 }> {
   const registry = loadRegistry();
   return Object.values(registry).map((rec) => ({
     public_id: rec.public_id,
     url: rec.url,
     created_at: rec.created_at,
+    original_filename: rec.original_filename ?? "—", // Fallback for old records
   }));
 }
 

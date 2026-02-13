@@ -20,6 +20,7 @@ A full-stack TypeScript application that lets users **upload an image**, **remov
 | **Cloud Hosting** | Processed images uploaded to [ImgBB](https://api.imgbb.com) — each image gets a unique public URL |
 | **Image Deletion** | Delete hosted images via the UI or API |
 | **Polished UI** | Dark elegant theme, loading states, toast notifications, animations |
+| **Pagination** | Gallery shows 6 images per page (latest first); API supports `?page` and `?limit` |
 | **Fast Image Loading** | Optimized loading with eager loading and preloading for newly uploaded images |
 
 ---
@@ -89,7 +90,7 @@ Image_Transform_TS/
 | Method | Endpoint | Description |
 |---|---|---|
 | `POST` | `/api/images` | Upload image → remove background → flip → optimize → host → return URL |
-| `GET` | `/api/images` | List all processed images |
+| `GET` | `/api/images` | List processed images (paginated, latest first). Query: `?page=1&limit=6` (defaults: page 1, limit 6). Response: `{ count, total, images }`. |
 | `DELETE` | `/api/images/{id}` | Delete a processed image from cloud storage |
 | `GET` | `/api/health` | Health check |
 

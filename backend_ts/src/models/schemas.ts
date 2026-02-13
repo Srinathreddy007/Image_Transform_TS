@@ -23,7 +23,10 @@ export interface ImageResponse {
 // Image list 
 /** Wraps a list of images for the GET /api/images endpoint. */
 export interface ImageListResponse {
+  /** Number of images in this response */
   count: number;
+  /** Total number of images (for pagination: "Page 1 of N") */
+  total: number;
   images: ImageResponse[];
 }
 

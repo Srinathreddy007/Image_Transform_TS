@@ -42,6 +42,9 @@ html {
   background: var(--color-bg);
   -webkit-font-smoothing: antialiased;
   scroll-behavior: smooth;
+  /* Improve scrolling performance */
+  overscroll-behavior-y: contain;
+  scroll-padding-top: 1rem;
 }
 
 /* Animated gradient background — slow, subtle, adds life */
@@ -52,6 +55,9 @@ body {
     radial-gradient(ellipse 60% 40% at 80% 100%, rgba(45, 212, 168, 0.06) 0%, transparent 50%),
     linear-gradient(170deg, var(--color-bg) 0%, var(--color-bg-alt) 100%);
   background-attachment: fixed;
+  /* Optimize scrolling performance */
+  -webkit-overflow-scrolling: touch;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 /* ── App layout ────────────────────────────────────────────────────────── */
@@ -62,6 +68,9 @@ body {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  /* Optimize scrolling */
+  position: relative;
+  contain: layout style;
 }
 
 .app-main {
@@ -331,11 +340,71 @@ body {
   border-radius: 999px;
 }
 
+/* ── Gallery with pagination ───────────────────────────────────────────── */
+.gallery-with-pagination {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
 /* ── Gallery grid ──────────────────────────────────────────────────────── */
 .gallery-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 1.25rem;
+  /* Optimize scrolling performance */
+  contain: layout style paint;
+  will-change: scroll-position;
+}
+
+/* ── Pagination (above gallery grid, below "Processed Images") ───────────── */
+.gallery-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 0.75rem 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.gallery-pagination-top {
+  border-top: none;
+  border-bottom: 1px solid var(--color-border);
+  margin-bottom: 0.25rem;
+}
+
+.gallery-pagination-info {
+  font-size: 0.9rem;
+  color: var(--color-text-muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+}
+
+.gallery-pagination-range {
+  font-size: 0.8rem;
+  opacity: 0.85;
+}
+
+.btn-pagination {
+  flex: 0 0 auto;
+  padding: 0.5rem 1rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+  border: 1px solid var(--color-border);
+}
+
+.btn-pagination:hover:not(:disabled) {
+  background: rgba(124, 106, 239, 0.15);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+.btn-pagination:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -355,6 +424,11 @@ body {
   display: flex;
   flex-direction: column;
   animation: card-in 0.45s cubic-bezier(0.4, 0, 0.2, 1) both;
+  /* Optimize scrolling performance */
+  contain: layout style paint;
+  content-visibility: auto;
+  will-change: transform;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 /* Staggered entrance: each card delays slightly */
@@ -368,7 +442,7 @@ body {
 
 .image-card:hover {
   box-shadow: 0 0 16px var(--color-primary-glow), var(--shadow-lg);
-  transform: translateY(-4px);
+  transform: translateY(-4px) translateZ(0); /* Keep hardware acceleration */
   border-color: rgba(124, 106, 239, 0.35);
 }
 
@@ -390,6 +464,9 @@ body {
   overflow: hidden;
   aspect-ratio: 4 / 3;
   background: #ffffff;
+  /* Optimize image rendering */
+  contain: layout style paint;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 /* Hover overlay */
@@ -459,6 +536,10 @@ body {
   opacity: 0;
   position: relative;
   z-index: 1;
+  /* Optimize image rendering */
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: crisp-edges;
+  transform: translateZ(0); /* Force hardware acceleration */
 }
 
 .image-thumb.loaded {
@@ -541,6 +622,18 @@ body {
 
 .btn-icon {
   flex-shrink: 0;
+}
+
+/* Download */
+.btn-download {
+  background: rgba(45, 212, 168, 0.12);
+  color: var(--color-success);
+}
+
+.btn-download:hover {
+  background: var(--color-success);
+  color: #fff;
+  box-shadow: 0 0 16px var(--color-success-glow);
 }
 
 /* Delete */
@@ -773,6 +866,12 @@ a {
 
   .image-card:hover {
     transform: none; /* Avoid jank on mobile scroll */
+  }
+
+  /* Reduce backdrop-filter cost on mobile for better scrolling */
+  .image-card {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
   }
 }
 

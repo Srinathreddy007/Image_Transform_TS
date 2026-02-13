@@ -14,8 +14,12 @@ interface Toast {
 
 let nextToastId = 0
 
+const PAGE_SIZE = 6
+
 export default function App() {
   const [images, setImages] = useState<ImageMeta[]>([])
+  const [total, setTotal] = useState(0)
+  const [currentPage, setCurrentPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [toasts, setToasts] = useState<Toast[]>([])
   const [newlyUploadedIds, setNewlyUploadedIds] = useState<Set<string>>(new Set())
@@ -34,21 +38,22 @@ export default function App() {
     setToasts((prev) => prev.filter((t) => t.id !== id))
   }, [])
 
-  /* ── Load existing images on mount ────────────────────────────────────── */
+  /* ── Load one page of images (backend pagination, latest first) ────────── */
   useEffect(() => {
-    listImages()
-      .then((imgs) => setImages(imgs))
+    setLoading(true)
+    listImages(currentPage, PAGE_SIZE)
+      .then(({ images: list, total: t }) => {
+        setImages(list)
+        setTotal(t)
+      })
       .catch(() => addToast('Could not load images from server.', 'error'))
       .finally(() => setLoading(false))
-  }, [addToast])
+  }, [currentPage, addToast])
 
   /* ── Handlers ─────────────────────────────────────────────────────────── */
   const handleUpload = useCallback(
     (image: ImageMeta) => {
-      setImages((prev) => [image, ...prev])
-      // Mark as newly uploaded so it loads immediately (no lazy loading)
       setNewlyUploadedIds((prev) => new Set([...prev, image.id]))
-      // Remove from newly uploaded set after 5 seconds (enough time to load)
       setTimeout(() => {
         setNewlyUploadedIds((prev) => {
           const next = new Set(prev)
@@ -56,7 +61,14 @@ export default function App() {
           return next
         })
       }, 5000)
+      setTotal((t) => t + 1)
+      setCurrentPage(1)
+      setImages((prev) => [image, ...prev].slice(0, PAGE_SIZE))
       addToast('Image processed and hosted successfully!', 'success')
+      listImages(1, PAGE_SIZE).then(({ images: list, total: t }) => {
+        setImages(list)
+        setTotal(t)
+      }).catch(() => {})
     },
     [addToast],
   )
@@ -64,9 +76,15 @@ export default function App() {
   const handleDeleted = useCallback(
     (id: string) => {
       setImages((prev) => prev.filter((img) => img.id !== id))
+      setTotal((t) => Math.max(0, t - 1))
       addToast('Image deleted.', 'success')
+      listImages(currentPage, PAGE_SIZE).then(({ images: list, total: t }) => {
+        setImages(list)
+        setTotal(t)
+        if (list.length === 0 && currentPage > 1) setCurrentPage(1)
+      }).catch(() => {})
     },
-    [addToast],
+    [addToast, currentPage],
   )
 
   const handleError = useCallback(
@@ -143,8 +161,8 @@ export default function App() {
         <section className="gallery-section">
           <h2 className="section-title">
             Processed Images{' '}
-            {images.length > 0 && (
-              <span className="badge">{images.length}</span>
+            {total > 0 && (
+              <span className="badge">{total}</span>
             )}
           </h2>
 
@@ -156,6 +174,10 @@ export default function App() {
           ) : (
             <ImageGallery
               images={images}
+              total={total}
+              currentPage={currentPage}
+              pageSize={PAGE_SIZE}
+              onPageChange={setCurrentPage}
               onDeleted={handleDeleted}
               onError={handleError}
               newlyUploadedIds={newlyUploadedIds}

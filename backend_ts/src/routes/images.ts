@@ -105,10 +105,11 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
 
   // Step 3 — Upload to ImgBB
   const imageId = uuidv4().replace(/-/g, "").slice(0, 12);
+  const originalFilename = file.originalname ?? "image.png";
   const t4 = performance.now();
   let cloudResult;
   try {
-    cloudResult = await uploadImage(optimized, imageId);
+    cloudResult = await uploadImage(optimized, imageId, originalFilename);
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);
     next(new HttpError(502, message));
@@ -122,7 +123,7 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
 
   const response: ImageResponse = {
     id: cloudResult.public_id,
-    original_filename: file.originalname ?? "unknown",
+    original_filename: cloudResult.original_filename,
     url: cloudResult.url,
     created_at: cloudResult.created_at,
   };
@@ -130,22 +131,41 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
   res.status(201).json(response);
 });
 
-// GET /api/images — list all 
+// Pagination defaults (match frontend: 6 per page, latest first)
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 6;
+const MAX_LIMIT = 100;
 
-router.get("/", (_req: Request, res: Response, next: NextFunction): void => {
+// GET /api/images — list with optional pagination (?page=1&limit=6), sorted latest first
+
+router.get("/", (req: Request, res: Response, next: NextFunction): void => {
   try {
-    const images = listImages();
+    const page = Math.max(1, parseInt(String(req.query.page), 10) || DEFAULT_PAGE);
+    const limit = Math.min(
+      MAX_LIMIT,
+      Math.max(1, parseInt(String(req.query.limit), 10) || DEFAULT_LIMIT)
+    );
 
-    const items: ImageResponse[] = images.map((img) => ({
+    const raw = listImages();
+
+    const items: ImageResponse[] = raw.map((img) => ({
       id: img.public_id,
-      original_filename: "—", // ImgBB doesn't store the original name
+      original_filename: img.original_filename,
       url: img.url,
       created_at: img.created_at,
     }));
 
+    // Sort by latest first
+    items.sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+    const total = items.length;
+    const start = (page - 1) * limit;
+    const paginated = items.slice(start, start + limit);
+
     const response: ImageListResponse = {
-      count: items.length,
-      images: items,
+      count: paginated.length,
+      total,
+      images: paginated,
     };
 
     res.json(response);

@@ -3,13 +3,34 @@ import ImageCard from './ImageCard'
 
 interface Props {
   images: ImageMeta[]
+  total: number
+  currentPage: number
+  pageSize: number
+  onPageChange: (page: number) => void
   onDeleted: (id: string) => void
   onError: (msg: string) => void
-  newlyUploadedIds?: Set<string> // Set of image IDs that were just uploaded
+  newlyUploadedIds?: Set<string>
 }
 
-export default function ImageGallery({ images, onDeleted, onError, newlyUploadedIds = new Set() }: Props) {
-  if (images.length === 0) {
+export default function ImageGallery({
+  images,
+  total,
+  currentPage,
+  pageSize,
+  onPageChange,
+  onDeleted,
+  onError,
+  newlyUploadedIds = new Set(),
+}: Props) {
+  const totalPages = Math.max(1, Math.ceil(total / pageSize))
+  const effectivePage = Math.min(currentPage, totalPages)
+  const startIndex = total === 0 ? 0 : (effectivePage - 1) * pageSize + 1
+  const endIndex = total === 0 ? 0 : Math.min(effectivePage * pageSize, total)
+
+  const goPrev = () => onPageChange(Math.max(1, effectivePage - 1))
+  const goNext = () => onPageChange(Math.min(totalPages, effectivePage + 1))
+
+  if (total === 0 && images.length === 0) {
     return (
       <div className="empty-state">
         {/* Empty gallery icon */}
@@ -35,16 +56,46 @@ export default function ImageGallery({ images, onDeleted, onError, newlyUploaded
   }
 
   return (
-    <div className="gallery-grid">
-      {images.map((img) => (
-        <ImageCard
-          key={img.id}
-          image={img}
-          onDeleted={onDeleted}
-          onError={onError}
-          isNewlyUploaded={newlyUploadedIds.has(img.id)}
-        />
-      ))}
+    <div className="gallery-with-pagination">
+      {totalPages > 1 && (
+        <nav className="gallery-pagination gallery-pagination-top" aria-label="Processed images pagination">
+          <button
+            type="button"
+            className="btn btn-pagination"
+            onClick={goPrev}
+            disabled={effectivePage <= 1}
+            aria-label="Previous page"
+          >
+            Previous
+          </button>
+          <span className="gallery-pagination-info">
+            Page {effectivePage} of {totalPages}
+            <span className="gallery-pagination-range">
+              ({startIndex}–{endIndex} of {total})
+            </span>
+          </span>
+          <button
+            type="button"
+            className="btn btn-pagination"
+            onClick={goNext}
+            disabled={effectivePage >= totalPages}
+            aria-label="Next page"
+          >
+            Next
+          </button>
+        </nav>
+      )}
+      <div className="gallery-grid">
+        {images.map((img) => (
+          <ImageCard
+            key={img.id}
+            image={img}
+            onDeleted={onDeleted}
+            onError={onError}
+            isNewlyUploaded={newlyUploadedIds.has(img.id)}
+          />
+        ))}
+      </div>
     </div>
   )
 }
