@@ -10,6 +10,7 @@ const BASE = '/api/images'
 export async function uploadImage(file: File): Promise<ImageMeta> {
   const form = new FormData()
   form.append('file', file)
+  form.append('original_filename', file.name)
 
   const res = await fetch(BASE, {
     method: 'POST',

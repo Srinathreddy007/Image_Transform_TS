@@ -46,9 +46,9 @@ export default function ImageCard({ image, onDeleted, onError, isNewlyUploaded =
       const link = document.createElement('a')
       link.href = url
       // Use original filename if available, otherwise generate one from ID
-      const filename = image.original_filename && image.original_filename !== '—'
-        ? image.original_filename.replace(/\.[^/.]+$/, '.png') // Replace extension with .png
-        : `image-${image.id}.png`
+      const filename = displayName.includes('.')
+        ? displayName.replace(/\.[^/.]+$/, '.png')
+        : `${displayName}.png`
       link.download = filename
       document.body.appendChild(link)
       link.click()
@@ -80,6 +80,10 @@ export default function ImageCard({ image, onDeleted, onError, isNewlyUploaded =
   }, [confirming, image.id, onDeleted, onError])
 
   const formattedDate = new Date(image.created_at).toLocaleString()
+  const displayName =
+    image.original_filename && image.original_filename !== '—'
+      ? image.original_filename
+      : `image-${image.id}.png`
 
   return (
     <div className="image-card">
@@ -104,7 +108,7 @@ export default function ImageCard({ image, onDeleted, onError, isNewlyUploaded =
           <img
             className={`image-thumb${imgLoaded ? ' loaded' : ''}`}
             src={image.url}
-            alt={image.original_filename}
+            alt={displayName}
             loading={isNewlyUploaded ? "eager" : "lazy"}
             fetchPriority={isNewlyUploaded ? "high" : undefined}
             onLoad={() => setImgLoaded(true)}
@@ -115,8 +119,8 @@ export default function ImageCard({ image, onDeleted, onError, isNewlyUploaded =
 
       {/* Info */}
       <div className="image-info">
-        <p className="image-name" title={image.original_filename}>
-          {image.original_filename}
+        <p className="image-name" title={displayName}>
+          {displayName}
         </p>
         <p className="image-date">{formattedDate}</p>
       </div>

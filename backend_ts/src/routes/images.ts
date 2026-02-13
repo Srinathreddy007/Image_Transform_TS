@@ -103,9 +103,12 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
   const t3_6 = performance.now();
   console.log(`Step 2.5 — Optimization:       ${((t3_6 - t3_5) / 1000).toFixed(2)}s`);
 
-  // Step 3 — Upload to ImgBB
+  // Step 3 — Upload to ImgBB (use local filename from client, not ImgBB's)
   const imageId = uuidv4().replace(/-/g, "").slice(0, 12);
-  const originalFilename = file.originalname ?? "image.png";
+  const originalFilename =
+    (req.body?.original_filename as string)?.trim() ||
+    file.originalname ||
+    "image.png";
   const t4 = performance.now();
   let cloudResult;
   try {

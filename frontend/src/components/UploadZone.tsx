@@ -53,7 +53,7 @@ export default function UploadZone({ onUpload, onError }: Props) {
       // Cycle through step labels while the backend processes
       const interval = setInterval(() => {
         setStepIdx((prev) => Math.min(prev + 1, STEPS.length - 1))
-      }, 1500)
+      }, 900)
 
       try {
         const result = await uploadImage(file)
@@ -82,10 +82,11 @@ export default function UploadZone({ onUpload, onError }: Props) {
     (e: React.DragEvent) => {
       e.preventDefault()
       setDragOver(false)
+      if (busy) return
       const file = e.dataTransfer.files[0]
       if (file) handleFile(file)
     },
-    [handleFile],
+    [handleFile, busy],
   )
 
   /* ── Click & keyboard support ─────────────────────────────────────────── */
@@ -106,10 +107,10 @@ export default function UploadZone({ onUpload, onError }: Props) {
   const onFileChange = useCallback(
     (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0]
-      if (file) handleFile(file)
+      if (file && !busy) handleFile(file)
       e.target.value = ''
     },
-    [handleFile],
+    [handleFile, busy],
   )
 
   /* ── Render ───────────────────────────────────────────────────────────── */
