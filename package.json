@@ -1,0 +1,32 @@
+{
+  "name": "image-transform-ts",
+  "version": "1.0.0",
+  "description": "Image Transformation Service - TypeScript Full Stack",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev:backend",
+    "dev:frontend": "cd frontend && npm run dev",
+    "dev:backend": "cd backend_ts && npm run dev",
+    "dev:all": "npm-run-all --parallel dev:frontend dev:backend",
+    "build": "npm run build:frontend && npm run build:backend",
+    "build:frontend": "cd frontend && npm run build",
+    "build:backend": "cd backend_ts && npm run build",
+    "install:all": "npm install && cd frontend && npm install && cd ../backend_ts && npm install",
+    "start": "cd backend_ts && npm start",
+    "lint": "npm run lint:frontend",
+    "lint:frontend": "cd frontend && npm run lint",
+    "deploy": "./deploy_ts.sh"
+  },
+  "keywords": [
+    "image",
+    "transformation",
+    "typescript",
+    "react",
+    "express"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

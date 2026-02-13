@@ -1,0 +1,23 @@
+runtime: nodejs20
+
+instance_class: F1
+
+# Start the compiled TypeScript server
+entrypoint: node dist/server.js
+
+env_variables:
+  ENVIRONMENT: "production"
+  # REMOVE_BG_API_KEY and IMGBB_API_KEY are loaded from Secret Manager
+  # at startup via config.ts 
+
+# Automatic scaling — free tier allows ~28 instance-hours/day
+automatic_scaling:
+  min_instances: 1
+  max_instances: 2
+  target_cpu_utilization: 0.65
+
+handlers:
+  # All requests are handled by the app
+  - url: /.*
+    script: auto
+    secure: always
