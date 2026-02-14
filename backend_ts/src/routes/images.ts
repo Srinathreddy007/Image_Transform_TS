@@ -55,13 +55,27 @@ function validateUpload(
   }
 }
 
+/** Allowed MIME types (must match ALLOWED_EXTENSIONS). */
+const ALLOWED_MIMES = new Set(["image/png", "image/jpeg", "image/webp"]);
+
+/** Detect MIME from magic bytes (PNG, JPEG, WebP). Returns null if unknown. */
+function detectMime(buffer: Buffer): string | null {
+  if (buffer.length < 12) return null;
+  const b = buffer;
+  if (b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47) return "image/png";
+  if (b[0] === 0xff && b[1] === 0xd8 && b[2] === 0xff) return "image/jpeg";
+  if (b[0] === 0x52 && b[1] === 0x49 && b[2] === 0x46 && b[3] === 0x46 &&
+      b[8] === 0x57 && b[9] === 0x45 && b[10] === 0x42 && b[11] === 0x50) return "image/webp";
+  return null;
+}
+
 /** User-facing message when image resolution is below remove.bg–supported minimum. */
 const MIN_RESOLUTION_MESSAGE =
   "Only images with resolution of at least 0.25 megapixels (e.g. 500×500) are supported. Images below that resolution are not supported.";
 
 /** User-facing message when image resolution exceeds remove.bg–supported maximum. */
 const MAX_RESOLUTION_MESSAGE =
-  "Image resolution must be at most 50 megapixels (e.g. 8000×6250). Images above that resolution are not supported.";
+  "Image resolution must be at most 50 megapixels (e.g. 8000x6250). Images above that resolution are not supported.";
 
 //  POST /api/images — upload and process 
 
@@ -72,6 +86,12 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
   validateUpload(file);
 
   const contents = file.buffer;
+
+  // MIME validation (magic bytes) — reject mislabeled or non-image content
+  const detectedMime = detectMime(contents);
+  if (!detectedMime || !ALLOWED_MIMES.has(detectedMime)) {
+    throw new HttpError(400, "Invalid or unsupported image format. Only PNG, JPG, JPEG, and WebP are allowed.");
+  }
 
   // Resolution check for remove.bg: reject very small images
   let width: number, height: number;

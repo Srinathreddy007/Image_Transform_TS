@@ -15,13 +15,18 @@
 
 set -e  # Exit on any error
 
+# Always run from repo root (where this script lives)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+cd "$SCRIPT_DIR"
+
 echo "══════════════════════════════════════════════════════════"
 echo "  Image Transformation Service (TypeScript) — Build & Deploy"
 echo "══════════════════════════════════════════════════════════"
 
-# ── Step 1: Build the React frontend ─────────────────────────────────────────
+# ── Step 1: Build the React frontend (clean build) ──────────────────────────
 echo ""
 echo "▸ Step 1/4: Building frontend..."
+rm -rf frontend/dist
 cd frontend
 npm install
 npm run build
@@ -57,4 +62,7 @@ PROJECT_ID=$(gcloud config get-value project 2>/dev/null)
 echo "══════════════════════════════════════════════════════════"
 echo "  app is live at:"
 echo "  https://${PROJECT_ID}.appspot.com"
+echo ""
+echo "  If you don't see your latest changes: hard refresh"
+echo "  (Ctrl+Shift+R or Cmd+Shift+R) or open in an incognito window."
 echo "══════════════════════════════════════════════════════════"
