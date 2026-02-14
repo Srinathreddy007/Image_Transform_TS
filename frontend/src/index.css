@@ -1,5 +1,5 @@
 /* ═══════════════════════════════════════════════════════════════════════════
-   Image Transformation Service — Production Styles
+   Transformly — Production Styles
    ═══════════════════════════════════════════════════════════════════════════ */
 
 /* ── Reset & base ──────────────────────────────────────────────────────── */
@@ -87,7 +87,7 @@ body {
   line-height: 1.5;
 }
 
-/* ── Pipeline: Upload → Process → Get URL (light green step indicators) ──── */
+/* ── Pipeline: Upload → Process → Get URL (muted — not the upload area) ──── */
 .pipeline {
   display: flex;
   align-items: center;
@@ -95,6 +95,9 @@ body {
   gap: 0.5rem;
   margin-top: 1.5rem;
   flex-wrap: wrap;
+  pointer-events: none;
+  cursor: default;
+  user-select: none;
 }
 
 .pipeline-step {
@@ -103,15 +106,15 @@ body {
   align-items: center;
   gap: 0.5rem;
   padding: 0.75rem 1rem;
-  background: #1a2e26;
-  border: 1px solid #2d5a47;
+  background: #1e293b;
+  border: 1px solid #475569;
   border-radius: 50px;
   min-width: 100px;
 }
 
 .pipeline-step-icon {
   display: flex;
-  color: #86efac;
+  color: #94a3b8;
 }
 
 .pipeline-step-icon svg {
@@ -119,19 +122,61 @@ body {
   height: 24px;
 }
 
+/* Two static gears for Process step */
+.pipeline-step-icon-gears {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.pipeline-step-icon-gears .gear-1 { transform: rotate(-12deg); }
+.pipeline-step-icon-gears .gear-2 { transform: rotate(12deg); }
+
+.pipeline-step-icon-gears svg {
+  width: 18px;
+  height: 18px;
+}
+
 .pipeline-step-label {
   font-size: 0.7rem;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: #86efac;
+  color: #94a3b8;
 }
 
 .pipeline-arrow {
-  color: #6b9080;
+  color: #64748b;
   font-size: 0.9rem;
   font-weight: 600;
   user-select: none;
+}
+
+.pipeline-hint {
+  margin-top: 0.75rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #e5e5e5;
+  text-align: center;
+  line-height: 1.4;
+  background: rgba(13, 148, 136, 0.12);
+  border-radius: var(--radius);
+  border: 1px solid rgba(13, 148, 136, 0.28);
+}
+
+/* ── Upload section: clear "here" for step 1 ─────────────────────────────── */
+.upload-section {
+  margin-bottom: 2rem;
+}
+
+.upload-section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  margin-bottom: 0.75rem;
+  text-align: center;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════
@@ -260,7 +305,7 @@ body {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  color: var(--color-text-muted);
+  color: #e5e5e5;
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
@@ -585,19 +630,23 @@ body {
 
 .empty-state {
   text-align: center;
-  padding: 4rem 1rem;
+  padding: 4rem 2rem;
   color: var(--color-text-muted);
+  background: rgba(13, 148, 136, 0.06);
+  border: 1px dashed rgba(13, 148, 136, 0.35);
+  border-radius: var(--radius);
 }
 
 .empty-icon {
-  color: var(--color-border);
+  color: var(--color-primary);
   margin-bottom: 1rem;
-  opacity: 0.5;
+  opacity: 0.7;
 }
 
 .empty-state p {
   font-size: 0.95rem;
   line-height: 1.7;
+  color: #d4d4d4;
 }
 
 .loading-state {
@@ -617,9 +666,11 @@ body {
 .toast-container {
   position: fixed;
   bottom: 1.5rem;
-  right: 1.5rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 0.5rem;
   z-index: 1000;
   pointer-events: none;
@@ -682,11 +733,11 @@ body {
 @keyframes toast-in {
   from {
     opacity: 0;
-    transform: translateX(24px) scale(0.95);
+    transform: translateY(10px) scale(0.96);
   }
   to {
     opacity: 1;
-    transform: translateX(0) scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
@@ -785,6 +836,7 @@ a {
   .toast-container {
     left: 1rem;
     right: 1rem;
+    transform: none;
   }
 
   .toast {

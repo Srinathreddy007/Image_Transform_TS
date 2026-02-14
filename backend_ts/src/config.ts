@@ -64,8 +64,25 @@ export interface Settings {
   /** ImgBB API key — free, no strict rate limit */
   IMGBB_API_KEY: string;
 
-  /** Maximum upload size in megabytes */
+  /**
+   * Maximum upload size in megabytes (default 10).
+   * Keeps processing time and memory reasonable, aligns with remove.bg and
+   * typical photo sizes; configurable via MAX_FILE_SIZE_MB env var.
+   */
   MAX_FILE_SIZE_MB: number;
+
+  /**
+   * Minimum image size in total pixels (width × height).
+   * remove.bg supports input up to 50 MP; very small images give poor results.
+   * We use 0.25 MP (250,000 pixels, e.g. 500×500) as minimum; configurable via MIN_IMAGE_PIXELS.
+   */
+  MIN_IMAGE_PIXELS: number;
+
+  /**
+   * Maximum image size in total pixels (width × height).
+   * remove.bg accepts input up to 50 megapixels; configurable via MAX_IMAGE_PIXELS.
+   */
+  MAX_IMAGE_PIXELS: number;
 
   /** Allowed file extensions (lowercase, with dot) */
   ALLOWED_EXTENSIONS: Set<string>;
@@ -89,6 +106,8 @@ export const settings: Settings = {
   REMOVE_BG_API_KEY: requireEnv("REMOVE_BG_API_KEY"),
   IMGBB_API_KEY: requireEnv("IMGBB_API_KEY"),
   MAX_FILE_SIZE_MB: parseInt(process.env.MAX_FILE_SIZE_MB ?? "10", 10),
+  MIN_IMAGE_PIXELS: parseInt(process.env.MIN_IMAGE_PIXELS ?? "250000", 10), // 0.25 MP
+  MAX_IMAGE_PIXELS: parseInt(process.env.MAX_IMAGE_PIXELS ?? "50000000", 10), // 50 MP (remove.bg limit)
   ALLOWED_EXTENSIONS: new Set(
     (process.env.ALLOWED_EXTENSIONS ?? ".png,.jpg,.jpeg,.webp").split(",")
   ),

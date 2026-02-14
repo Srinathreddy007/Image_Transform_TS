@@ -41,7 +41,7 @@ export default function UploadZone({ onUpload, onError }: Props) {
         return
       }
       if (file.size > MAX_MB * 1024 * 1024) {
-        onError(`File is too large. Maximum size is ${MAX_MB} MB.`)
+        onError('The image size has to be below 10 MB.')
         return
       }
 
@@ -53,7 +53,7 @@ export default function UploadZone({ onUpload, onError }: Props) {
       // Cycle through step labels while the backend processes
       const interval = setInterval(() => {
         setStepIdx((prev) => Math.min(prev + 1, STEPS.length - 1))
-      }, 900)
+      }, 1500)
 
       try {
         const result = await uploadImage(file)

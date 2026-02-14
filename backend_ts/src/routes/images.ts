@@ -10,6 +10,7 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { v4 as uuidv4 } from "uuid";
 import path from "path";
+import sharp from "sharp";
 import { settings } from "../config";
 import { removeBackground } from "../services/backgroundRemoval";
 import { flipHorizontal, optimizeImage } from "../services/imageProcessing";
@@ -49,10 +50,18 @@ function validateUpload(
   if (file.size > maxBytes) {
     throw new HttpError(
       400,
-      `File exceeds the ${settings.MAX_FILE_SIZE_MB} MB size limit.`
+      "The image size has to be below 10 MB."
     );
   }
 }
+
+/** User-facing message when image resolution is below remove.bg–supported minimum. */
+const MIN_RESOLUTION_MESSAGE =
+  "Only images with resolution of at least 0.25 megapixels (e.g. 500×500) are supported. Images below that resolution are not supported.";
+
+/** User-facing message when image resolution exceeds remove.bg–supported maximum. */
+const MAX_RESOLUTION_MESSAGE =
+  "Image resolution must be at most 50 megapixels (e.g. 8000×6250). Images above that resolution are not supported.";
 
 //  POST /api/images — upload and process 
 
@@ -63,6 +72,23 @@ router.post("/", async (req: Request, res: Response, next: NextFunction): Promis
   validateUpload(file);
 
   const contents = file.buffer;
+
+  // Resolution check for remove.bg: reject very small images
+  let width: number, height: number;
+  try {
+    const meta = await sharp(contents).metadata();
+    width = meta.width ?? 0;
+    height = meta.height ?? 0;
+  } catch {
+    throw new HttpError(400, "Invalid or corrupted image; could not read dimensions.");
+  }
+  const pixels = width * height;
+  if (pixels < settings.MIN_IMAGE_PIXELS) {
+    throw new HttpError(400, MIN_RESOLUTION_MESSAGE);
+  }
+  if (pixels > settings.MAX_IMAGE_PIXELS) {
+    throw new HttpError(400, MAX_RESOLUTION_MESSAGE);
+  }
 
   // Step 1 — Background removal using remove.bg third-party API
   const t0 = performance.now();

@@ -22,6 +22,9 @@ A full-stack TypeScript application that lets users **upload an image**, **remov
 | **Polished UI** | Dark elegant theme, loading states, toast notifications, animations |
 | **Pagination** | Gallery shows 6 images per page (latest first); API supports `?page` and `?limit` |
 | **Fast Image Loading** | Optimized loading with eager loading and preloading for newly uploaded images |
+| **Upload limit** | 10 MB max per image (balance of quality, processing time, and remove.bg compatibility; configurable via `MAX_FILE_SIZE_MB`) |
+| **Resolution** | 0.25–50 megapixels (e.g. 500×500 to 8000×6250); aligned with [remove.bg](https://www.remove.bg/api) limits; configurable via `MIN_IMAGE_PIXELS` / `MAX_IMAGE_PIXELS` |
+| **Formats** | PNG, JPEG, WebP only |
 
 ---
 
@@ -36,6 +39,44 @@ A full-stack TypeScript application that lets users **upload an image**, **remov
 | **Cloud Storage** | ImgBB API |
 | **Secrets Management** | Google Cloud Secret Manager (production) |
 | **Deployment** | Google Cloud App Engine |
+
+---
+
+## Why These Third-Party APIs?
+
+### Background removal: remove.bg
+
+- **Why over others:** Background removal is hard to do well in house. remove.bg offers a single REST call, clear docs and consistent quality for people, products and animals. Alternatives (e.g. [rembg](https://github.com/danielgatis/rembg) self-hosted, or other SaaS) either need more infra and tuning or similar API cost.
+- **Why over self-hosted models:** Running our own model (e.g. U²-Net) would need GPU/compute, more code, and maintenance. remove.bg’s free tier (50 calls/month) is enough for light use without that overhead.
+
+### Image hosting: ImgBB
+
+- **Why over others:** We need a public URL for each processed image. ImgBB’s free API has no strict rate limit, needs only an API key and returns a permanent URL plus a delete link. No buckets, CORS or IAM to configure.
+- **Trade-off:** ImgBB has no “list my images” or “delete by ID” — only the delete URL returned at upload. That’s why we keep a local registry (file or DB) mapping our IDs to ImgBB’s URLs and delete links.
+- **Duplicate uploads:** Uploading the same image twice can result in the same ImgBB URL/delete link (ImgBB may deduplicate by content). The app uses reference counting: we only call the delete URL when the last registry entry for that URL is removed, so deleting one "copy" in the UI does not remove the image for the other.
+- **Why not S3/GCS here:** For a small app, Google Cloud Storage would require buckets, CORS and often signed URLs or auth. ImgBB keeps setup minimal while still giving shareable links.
+
+## Scaling: What to Use Instead
+
+If you outgrow the current setup, you can swap services without changing the rest of the app much; the backend already isolates them in `backgroundRemoval.ts` and `cloudStorage.ts`.
+
+### Background removal (higher volume / lower cost)
+
+| Option | When to consider |
+|--------|------------------|
+| **remove.bg paid** | More than 50 calls/month; keep same API, higher limits. |
+| **Self-hosted model (e.g. rembg, U²-Net)** | Many requests; you run the model on your own GPU/CPU and pay for compute instead of per call. |
+| **Other SaaS (e.g. Cloudinary AI, dedicated ML APIs)** | Need different quality/SLA or multi region so evaluate per call vs fixed cost. |
+
+### Image storage (listing, durability, control)
+
+| Option | When to consider |
+|--------|------------------|
+| **Google Cloud Storage (GCS)** | Already on GCP and it need stable listing, delete-by-id and no dependency on a third-party free tier. Replace `cloudStorage.ts` with GCS client and store metadata (and optional delete tokens) in a DB. |
+| **AWS S3** | Same idea on AWS. We use S3 client, optional CloudFront for CDN. |
+| **Cloudinary** | Need transforms/CDN and a single API for upload, list and delete; good fit if you want more image APIs in one place. |
+
+In all cases, keep the same app flow (upload → process → store → return URL); only the implementations of `removeBackground()` and `uploadImage` / `listImages` / `deleteImage` need to change.
 
 ---
 
@@ -254,6 +295,10 @@ Create `backend_ts/.env` file:
 | `IMGBB_API_KEY` | ImgBB API key (free, no strict limit) | Yes |
 | `ENVIRONMENT` | `development` or `production` | No (defaults to `development`) |
 | `PORT` | Server port | No (defaults to 8000) |
+| `MAX_FILE_SIZE_MB` | Max upload size in MB | No (defaults to 10) |
+| `MIN_IMAGE_PIXELS` | Min resolution (width×height), e.g. 250000 for 0.25 MP | No (defaults to 250000) |
+| `MAX_IMAGE_PIXELS` | Max resolution (width×height), e.g. 50000000 for 50 MP | No (defaults to 50000000) |
+| `CORS_ORIGINS` | Allowed origins (comma-separated) | No (defaults to `http://localhost:5173`) |
 
 ### Production (App Engine)
 

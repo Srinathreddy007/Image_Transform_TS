@@ -146,8 +146,13 @@ export function listImages(): Array<{
 
 /**
  * Delete an image by hitting the delete URL that ImgBB returned on upload.
+ * If the same image was uploaded twice (ImgBB may return the same URL/delete_url
+ * for identical content), we only call the delete URL when this is the last
+ * registry entry sharing that delete_url, so deleting one entry does not break
+ * the other.
  *
- * @returns true if the image was found and delete request sent.
+ * @returns true if the image was found and removed from registry (and from
+ *   ImgBB when it was the last reference).
  * @throws Error if the HTTP request itself errors out.
  */
 export async function deleteImage(publicId: string): Promise<boolean> {
@@ -158,18 +163,25 @@ export async function deleteImage(publicId: string): Promise<boolean> {
 
   const deleteUrl = record.delete_url;
 
-  if (deleteUrl) {
-    try {
-      await axios.get(deleteUrl, { timeout: 30_000 });
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : String(err);
-      throw new Error(`ImgBB delete request failed: ${message}`);
-    }
-  }
-
-  // Remove from local registry regardless.
+  // Remove our registry entry first so we count references excluding this one.
   delete registry[publicId];
   saveRegistry(registry);
+
+  // Only call ImgBB delete if no other registry entry shares this delete_url.
+  // (Same image uploaded twice can yield the same ImgBB URL/delete_url.)
+  if (deleteUrl) {
+    const othersWithSameDeleteUrl = Object.values(registry).filter(
+      (r) => r.delete_url === deleteUrl
+    );
+    if (othersWithSameDeleteUrl.length === 0) {
+      try {
+        await axios.get(deleteUrl, { timeout: 30_000 });
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        throw new Error(`ImgBB delete request failed: ${message}`);
+      }
+    }
+  }
 
   return true;
 }
