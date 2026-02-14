@@ -1,6 +1,6 @@
 # Image Transformation Service
 
-A full-stack TypeScript application that lets users **upload an image**, **remove its background**, **flip it horizontally**, **optimize it**, and **host the result online** with a shareable URL.
+A full stack TypeScript application that lets users **upload an image**, **remove its background**, **flip it horizontally**, **optimize it**, and **host the result online** with a shareable URL.
 
 ---
 
@@ -23,7 +23,7 @@ A full-stack TypeScript application that lets users **upload an image**, **remov
 | **Pagination** | Gallery shows 6 images per page (latest first); API supports `?page` and `?limit` |
 | **Fast Image Loading** | Optimized loading with eager loading and preloading for newly uploaded images |
 | **Upload limit** | 10 MB max per image (balance of quality, processing time, and remove.bg compatibility; configurable via `MAX_FILE_SIZE_MB`) |
-| **Resolution** | 0.25–50 megapixels (e.g. 500×500 to 8000×6250); aligned with [remove.bg](https://www.remove.bg/api) limits; configurable via `MIN_IMAGE_PIXELS` / `MAX_IMAGE_PIXELS` |
+| **Resolution** | 0.25–50 megapixels (e.g. 500×500 to 8000×6250); aligned with [remove.bg](https://www.remove.bg/api) limits,  configurable via `MIN_IMAGE_PIXELS` / `MAX_IMAGE_PIXELS` |
 | **Formats** | PNG, JPEG, WebP only |
 
 ---
@@ -42,17 +42,17 @@ A full-stack TypeScript application that lets users **upload an image**, **remov
 
 ---
 
-## Why These Third-Party APIs?
+## Why These Third Party APIs?
 
 ### Background removal: remove.bg
 
 - **Why over others:** Background removal is hard to do well in house. remove.bg offers a single REST call, clear docs and consistent quality for people, products and animals. Alternatives (e.g. [rembg](https://github.com/danielgatis/rembg) self-hosted, or other SaaS) either need more infra and tuning or similar API cost.
-- **Why over self-hosted models:** Running our own model (e.g. U²-Net) would need GPU/compute, more code, and maintenance. remove.bg’s free tier (50 calls/month) is enough for light use without that overhead.
+- **Why over self hosted models:** Running our own model (e.g. U² Net) would need GPU/compute, more code, and maintenance. remove.bg’s free tier (50 calls/month) is enough for light use without that overhead.
 
 ### Image hosting: ImgBB
 
 - **Why over others:** We need a public URL for each processed image. ImgBB’s free API has no strict rate limit, needs only an API key and returns a permanent URL plus a delete link. No buckets, CORS or IAM to configure.
-- **Trade-off:** ImgBB has no “list my images” or “delete by ID” — only the delete URL returned at upload. That’s why we keep a local registry (file or DB) mapping our IDs to ImgBB’s URLs and delete links.
+- **Trade off:** ImgBB has no “list my images” or “delete by ID” only the delete URL returned at upload. That’s why we keep a local registry (file or DB) mapping our IDs to ImgBB’s URLs and delete links.
 - **Duplicate uploads:** Uploading the same image twice can result in the same ImgBB URL/delete link (ImgBB may deduplicate by content). The app uses reference counting: we only call the delete URL when the last registry entry for that URL is removed, so deleting one "copy" in the UI does not remove the image for the other.
 - **Why not S3/GCS here:** For a small app, Google Cloud Storage would require buckets, CORS and often signed URLs or auth. ImgBB keeps setup minimal while still giving shareable links.
 
@@ -112,14 +112,14 @@ Image_Transform_TS/
 │   │   ├── api.ts                 # API client functions
 │   │   ├── types.ts               # TypeScript type definitions
 │   │   ├── components/
-│   │   │   ├── UploadZone.tsx     # Drag-and-drop upload area
+│   │   │   ├── UploadZone.tsx     # Drag and drop upload area
 │   │   │   ├── ImageGallery.tsx   # Grid of processed images
 │   │   │   └── ImageCard.tsx      # Individual image card with actions
 │   │   └── index.css              # Global styles
 │   ├── package.json
 │   ├── vite.config.ts
 │   └── tsconfig.json
-├── deploy_ts.sh                   # One-command build & deploy script
+├── deploy_ts.sh                   # One command build & deploy script
 ├── package.json                   # Root package.json with convenience scripts
 └── README.md
 ```
