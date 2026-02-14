@@ -53,28 +53,45 @@ export function createApp(): express.Express {
     res.json({ status: "ok" });
   });
 
-  //Serve React frontend (production only) 
+  //Serve React frontend (production only)
   if (fs.existsSync(STATIC_DIR)) {
-    // Serve JS/CSS/images/etc. from /assets
-    app.use("/assets", express.static(path.join(STATIC_DIR, "assets")));
+    const assetsDir = path.join(STATIC_DIR, "assets");
+    // Serve JS/CSS from /assets — only if file exists; otherwise 404 (never HTML)
+    app.use("/assets", (req: Request, res: Response) => {
+      const name = path.basename(req.path);
+      if (!name) {
+        res.status(404).end();
+        return;
+      }
+      const filePath = path.join(assetsDir, name);
+      if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+        res.sendFile(filePath);
+      } else {
+        res.status(404).end();
+      }
+    });
 
     // Serve favicon
     app.get("/favicon.svg", (_req: Request, res: Response) => {
       res.sendFile(path.join(STATIC_DIR, "favicon.svg"));
     });
 
-    // Catch-all: serve index.html for any non-API route (SPA routing)
-    // Use app.use() instead of app.get("*") for Express 5 compatibility
+    // SPA fallback: serve index.html for non-API, non-asset routes (with no-cache so deploy updates apply)
     app.use((req: Request, res: Response, next) => {
-      // Don't intercept /api routes
       if (req.path.startsWith("/api")) {
         return next();
       }
-
+      if (req.path.startsWith("/assets/")) {
+        return res.status(404).end();
+      }
       const filePath = path.join(STATIC_DIR, req.path);
       if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
         res.sendFile(filePath);
       } else {
+        // Prevent caching so users always get latest index.html (and correct asset hashes) after deploy
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate, max-age=0");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
         res.sendFile(path.join(STATIC_DIR, "index.html"));
       }
     });
