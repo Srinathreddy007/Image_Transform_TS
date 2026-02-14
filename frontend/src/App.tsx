@@ -95,60 +95,42 @@ export default function App() {
   /* ── Render ───────────────────────────────────────────────────────────── */
   return (
     <div className="app">
-      {/* ── Header ────────────────────────────────────────────────────── */}
       <header className="app-header">
         <h1 className="app-title">Image Transformation Service</h1>
         <p className="app-subtitle">
           Upload an image, remove its background, flip it, and get a hosted URL
         </p>
-
-        {/* How-it-works pipeline — gives first-time users instant clarity */}
-        <div className="pipeline">
+        <div className="pipeline" role="presentation">
           <div className="pipeline-step">
-            <div className="pipeline-icon">
-              {/* Upload icon */}
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <div className="pipeline-step-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                 <polyline points="17 8 12 3 7 8" />
                 <line x1="12" y1="3" x2="12" y2="15" />
               </svg>
             </div>
-            <span className="pipeline-label">Upload</span>
+            <span className="pipeline-step-label">Upload</span>
           </div>
-
-          <div className="pipeline-arrow" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </div>
-
+          <div className="pipeline-arrow" aria-hidden="true">&gt;</div>
           <div className="pipeline-step">
-            <div className="pipeline-icon">
-              {/* Scissors/process icon */}
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <div className="pipeline-step-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="18" height="18" rx="2" />
                 <path d="M9 3v18" />
                 <path d="M3 9h18" />
               </svg>
             </div>
-            <span className="pipeline-label">Process</span>
+            <span className="pipeline-step-label">Process</span>
           </div>
-
-          <div className="pipeline-arrow" aria-hidden="true">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 18 15 12 9 6" />
-            </svg>
-          </div>
-
+          <div className="pipeline-arrow" aria-hidden="true">&gt;</div>
           <div className="pipeline-step">
-            <div className="pipeline-icon">
-              {/* Link/host icon */}
-              <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <div className="pipeline-step-icon">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
                 <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
               </svg>
             </div>
-            <span className="pipeline-label">Get URL</span>
+            <span className="pipeline-step-label">Get URL</span>
           </div>
         </div>
       </header>

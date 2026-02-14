@@ -167,10 +167,8 @@ export default function UploadZone({ onUpload, onError }: Props) {
             <polyline points="17 8 12 3 7 8" />
             <line x1="12" y1="3" x2="12" y2="15" />
           </svg>
-          <p className="upload-text">
-            <strong>Click or drag</strong> an image here to process it
-          </p>
-          <p className="upload-hint">PNG, JPEG, or WebP &middot; up to 10 MB</p>
+          <p className="upload-text">Click or drag an image here to process it</p>
+          <p className="upload-hint">PNG, JPEG, or WebP up to 10 MB</p>
         </div>
       )}
     </div>

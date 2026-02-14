@@ -57,8 +57,19 @@ export default function ImageGallery({
 
   return (
     <div className="gallery-with-pagination">
+      <div className="gallery-grid">
+        {images.map((img) => (
+          <ImageCard
+            key={img.id}
+            image={img}
+            onDeleted={onDeleted}
+            onError={onError}
+            isNewlyUploaded={newlyUploadedIds.has(img.id)}
+          />
+        ))}
+      </div>
       {totalPages > 1 && (
-        <nav className="gallery-pagination gallery-pagination-top" aria-label="Processed images pagination">
+        <nav className="gallery-pagination gallery-pagination-bottom" aria-label="Processed images pagination">
           <button
             type="button"
             className="btn btn-pagination"
@@ -85,17 +96,6 @@ export default function ImageGallery({
           </button>
         </nav>
       )}
-      <div className="gallery-grid">
-        {images.map((img) => (
-          <ImageCard
-            key={img.id}
-            image={img}
-            onDeleted={onDeleted}
-            onError={onError}
-            isNewlyUploaded={newlyUploadedIds.has(img.id)}
-          />
-        ))}
-      </div>
     </div>
   )
 }
