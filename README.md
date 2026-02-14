@@ -58,7 +58,7 @@ A full stack TypeScript application that lets users **upload an image**, **remov
 
 ## Scaling: What to Use Instead
 
-If you outgrow the current setup, you can swap services without changing the rest of the app much; the backend already isolates them in `backgroundRemoval.ts` and `cloudStorage.ts`.
+If we outgrow the current setup, we can swap services without changing the rest of the app much; the backend already isolates them in `backgroundRemoval.ts` and `cloudStorage.ts`.
 
 ### Background removal (higher volume / lower cost)
 
